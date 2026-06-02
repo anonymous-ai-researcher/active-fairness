@@ -3,6 +3,10 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+> [!NOTE]
+> ## 📄 Updated Manuscript (April 2026)
+> [![Updated](https://img.shields.io/badge/📄-Updated_Manuscript-8A2BE2)](UPDATED-KDD2026_ID4143.pdf) &nbsp; **[`UPDATED-KDD2026_ID4143.pdf`](UPDATED-KDD2026_ID4143.pdf)** has been added to this repository. It contains a new **Theorem 4** (SUM-type Lower Bound under Heterogeneous Rates) with complete proof in Appendix A.8, closing the MAX-vs-SUM gap noted in the original Remark 2. All additions are marked in <span style="color:green">**green**</span>. This was developed in academic dialogue with Reviewer 5Ucc and is included with PC Chair permission.
+
 This repository provides the official implementation for the paper:
 
 > **The Price of Fairness in Active Learning: Fundamental Limits and Optimal Label Acquisition**
@@ -23,10 +27,57 @@ We present matching algorithms — **ConstrainedERM-DP** for DP and **FairStrati
 
 ### Key Results
 
-- **36–39% label savings** over fairness-agnostic baselines on Folktables, COMPAS, and Adult
+- **34–39% label savings** over fairness-agnostic baselines on Folktables, COMPAS, Adult, and Diabetes
 - **Scaling law verification**: R² = 0.97 fit to the predicted form `n = c₁·d/ε² + c₂·k/(γ²p₊)`
 - **Separation theorem**: EO-constrained learning requires ~100× more labels than unconstrained active learning at ε=0.02
 - At p₊ = 0.01 (e.g., fraud detection), EO requires **~90× more labels** than DP
+
+---
+
+> [!IMPORTANT]
+> ## 🆕 Extended Experiments (Rebuttal Supplement — April 2026)
+> Added in response to reviewer feedback: **(1)** a non-census healthcare benchmark and **(2)** a non-linear model pilot.
+
+---
+
+### 🏥 Diabetes 130-Hospitals (Healthcare Domain)
+
+[![New](https://img.shields.io/badge/🆕-Healthcare_Domain-green)](supplementary/diabetes_results.json) &nbsp; [Diabetes 130-US Hospitals](https://archive.ics.uci.edu/dataset/296/diabetes+130-us+hospitals+for+years+1999-2008) (Strack et al., 2014) via [Fairlearn](https://fairlearn.org/main/user_guide/datasets/diabetes_hospital_data.html). Task: 30-day readmission prediction. Race as protected attribute (k=3, p₊=0.11, n=101,766). γ=0.10, 10 seeds.
+
+| Method | Acc(%) | EO | Label Savings |
+|--------|--------|----|---------------|
+| Unconstrained | 89.3±0.3 | .175† | -- |
+| Passive-Fair | 86.9±0.5 | .093 | -- |
+| Active-Fair | 87.5±0.4 | .088 | 21% |
+| **FairStratified** | **88.2±0.4** | **.076** | **34%** |
+
+†EO exceeds γ. Label savings (34%) consistent with 36–39% on census benchmarks. Fairness tax follows the predicted trend: k=9 → 2.4pp, k=6 → 1.9pp, k=5 → 1.3pp, **k=3 → 1.1pp**.
+
+![Diabetes Learning Curves](supplementary/fig_diabetes_learning_curves.png)
+
+![Diabetes Hierarchy](supplementary/fig_diabetes_hierarchy.png)
+
+---
+
+### 🧠 MLP Pilot (Non-Linear Models)
+
+[![New](https://img.shields.io/badge/🆕-Non--Linear_Models-blue)](supplementary/mlp_pilot_results.json) &nbsp; 1-hidden-layer MLP (64 neurons, ReLU) vs logistic regression on Folktables (k=9, γ=0.05).
+
+![MLP Pilot Results](supplementary/fig_mlp_pilot.png)
+
+Both models exhibit the same k/(γ²p₊) scaling and DP < EO ≤ EqOdds hierarchy, confirming the lower bounds are not artifacts of linear models.
+
+---
+
+### Supplementary Files
+
+| File | Description |
+|------|-------------|
+| [![Updated](https://img.shields.io/badge/📄-New-8A2BE2) `UPDATED-KDD2026_ID4143.pdf`](UPDATED-KDD2026_ID4143.pdf) | Updated manuscript with Theorem 4 (SUM-type Lower Bound) and complete proof (Appendix A.8) |
+| [`diabetes_results.json`](supplementary/diabetes_results.json) | Diabetes experiment raw data (4 methods × 10 seeds) |
+| [`mlp_pilot_results.json`](supplementary/mlp_pilot_results.json) | MLP vs LR comparison on Folktables |
+
+---
 
 ## Installation
 
@@ -64,7 +115,8 @@ pip install -r requirements.txt
 ├── configs/
 │   ├── default.yaml          # Default experiment configuration
 │   ├── synthetic.yaml        # Synthetic data experiments (Q1, Q2, Q4)
-│   └── benchmark.yaml        # Real-data benchmark experiments (Q3)
+│   ├── benchmark.yaml        # Real-data benchmark experiments (Q3)
+│   └── diabetes.yaml         # 🆕 Diabetes 130-Hospitals experiment
 ├── src/
 │   ├── __init__.py
 │   ├── data/
@@ -72,7 +124,8 @@ pip install -r requirements.txt
 │   │   ├── synthetic.py      # Synthetic Gaussian mixture data generator
 │   │   ├── folktables.py     # Folktables (ACSIncome) loader
 │   │   ├── compas.py         # COMPAS recidivism loader
-│   │   └── adult.py          # UCI Adult Income loader
+│   │   ├── adult.py          # UCI Adult Income loader
+│   │   └── diabetes.py       # 🆕 Diabetes 130-Hospitals loader (via Fairlearn)
 │   ├── methods/
 │   │   ├── __init__.py
 │   │   ├── fair_stratified.py      # FairStratified (Algorithm 2, EO/EqOdds)
@@ -97,7 +150,15 @@ pip install -r requirements.txt
 │   ├── run_benchmarks.py     # Q3: Benchmark comparison (Fig. 3, Table 2)
 │   ├── run_hierarchy.py      # Q4: Fairness hierarchy (Fig. 4)
 │   ├── run_ablation.py       # Ablation studies (Fig. 5, 6)
+│   ├── run_diabetes.py       # 🆕 Diabetes 130-Hospitals experiment
+│   ├── run_mlp_pilot.py      # 🆕 MLP pilot on Folktables
 │   └── run_all.py            # Run all experiments
+├── supplementary/            # 🆕 Extended experimental results
+│   ├── diabetes_results.json
+│   ├── mlp_pilot_results.json
+│   ├── fig_diabetes_learning_curves.png
+│   ├── fig_diabetes_hierarchy.png
+│   └── fig_mlp_pilot.png
 └── tests/
     ├── test_metrics.py       # Unit tests for fairness metrics
     ├── test_data.py          # Unit tests for data loaders
@@ -129,6 +190,12 @@ python scripts/run_hierarchy.py --config configs/synthetic.yaml
 
 # Ablation studies (Figures 5, 6)
 python scripts/run_ablation.py --config configs/benchmark.yaml
+
+# 🆕 Diabetes 130-Hospitals (healthcare domain)
+python scripts/run_diabetes.py --config configs/diabetes.yaml
+
+# 🆕 MLP pilot on Folktables
+python scripts/run_mlp_pilot.py --config configs/benchmark.yaml --classifier mlp
 ```
 
 ### Custom experiment
@@ -178,8 +245,9 @@ Two-phase design with stratified sampling:
 | COMPAS | 6K | 7 | 6 | 0.45 | 0.8% | ProPublica |
 | Adult | 45K | 14 | 5 | 0.24 | 0.8% | UCI |
 | Synthetic | 500K | varies | varies | varies | — | Gaussian mixtures |
+| 🆕 Diabetes | 102K | 50 | 3 | 0.11 | 2.0% | UCI / Fairlearn |
 
-Real datasets are automatically downloaded on first use.
+Real datasets are automatically downloaded on first use. The Diabetes dataset is loaded via `fairlearn.datasets.fetch_diabetes_hospital()`.
 
 ## Reproducibility
 
@@ -194,6 +262,12 @@ To reproduce all paper results:
 
 ```bash
 python scripts/run_all.py --seeds 0 1 2 3 4 5 6 7 8 9
+```
+
+To reproduce supplementary Diabetes experiment:
+
+```bash
+python scripts/run_diabetes.py --seeds 0 1 2 3 4 5 6 7 8 9
 ```
 
 ## Configuration
@@ -212,8 +286,10 @@ use_calibrated: true        # true for real data, false for synthetic
 theoretical_constant: 32    # 32/γ² (theoretical) or 2/γ² (calibrated)
 
 # Model
-classifier: "logistic"
-C: 1.0               # Regularization
+classifier: "logistic"      # "logistic" or "mlp"
+C: 1.0                      # Regularization (LR)
+hidden_layer_sizes: [64]    # MLP architecture
+activation: "relu"          # MLP activation
 solver: "lbfgs"
 max_iter: 1000
 
@@ -222,17 +298,24 @@ batch_size: 10
 warm_start: 50
 ```
 
-## Citation
+## Baselines
 
-```bibtex
-@inproceedings{anonymous2026price,
-  title={The Price of Fairness in Active Learning: Fundamental Limits and Optimal Label Acquisition},
-  author={Anonymous},
-  booktitle={Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining},
-  year={2026}
-}
-```
+We compare against the following methods:
+
+| Method | Sampling Strategy | Fairness Enforcement | Reference |
+|--------|-------------------|---------------------|-----------|
+| **Unconstrained Active** | Uncertainty (max entropy) | None | — |
+| **Passive-Fair** | Random (passive) | Post-hoc threshold adjustment | Hardt et al., NeurIPS 2016 |
+| **Active-Fair** | Uncertainty (max entropy) | Post-hoc threshold adjustment | Hardt et al., NeurIPS 2016 |
+| **FAL** | Fairness-aware acquisition | Post-hoc threshold adjustment | Anahideh et al., Expert Syst. Appl. 2022 |
+| **FairStratified** (ours) | Stratified by group | In-processing constrained ERM | This paper |
+
+To our knowledge, FairStratified is the first group-fair active learning method that enforces fairness during model training via constrained ERM. Existing fair AL methods (FAL, FAL-CUR, Falcon) modify only the acquisition function, training standard unconstrained classifiers on selected data. The closest in-processing method is Camilleri et al. (UAI 2024), which is concurrent work; Shen et al. (ICML 2022) and Cao & Lan (UAI 2022) address individual (metric) fairness, a different setting.
 
 ## License
 
 This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+
+## Acknowledgments
+
+We thank the reviewers for constructive feedback that improved this work.
